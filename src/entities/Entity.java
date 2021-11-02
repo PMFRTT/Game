@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import Display.DisplayMaster;
 import models.TexturedModel;
-import terrain.Terrain;
+import terrain.Chunk;
 import water.WaterTile;
 
 public class Entity {
@@ -30,7 +30,7 @@ public class Entity {
 		this.scale = scale;
 	}
 	
-	public void fishMove(Entity fish, float speed,float rotY, WaterTile water, Terrain terrain)
+	public void fishMove(Entity fish, float speed,float rotY, WaterTile water, Chunk terrain)
 	{
 		float distance = speed * (DisplayMaster.getFrameTimeMillis() / 1000);
 		float dx = (float) (distance * Math.cos(Math.toRadians(fish.getRotY())));

@@ -2,13 +2,13 @@ package entities;
 
 import java.util.List;
 
+import engineTester.MainGameLoop;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector3f;
 
 import Display.DisplayMaster;
 import models.TexturedModel;
 import terrain.Chunk;
-import terrain.Terrain;
 
 public class Player extends Entity{
 	
@@ -95,8 +95,9 @@ public class Player extends Entity{
 	
 	
 
-	public void move(Camera camera, Chunk terrain, List<Entity> entities)
+	public void move(Camera camera, List<Entity> entities)
 	{
+		Chunk chunk = MainGameLoop.chunkGenerator.getCurrentChunk(this.getPosition());
 		if(upwardsSpeed < -100)
 			{
 				upwardsSpeed = -100;
@@ -128,7 +129,7 @@ public class Player extends Entity{
 		super.increasePosition(dx2, 0, dz2);
 		upwardsSpeed += GRAVITY *(DisplayMaster.getFrameTimeMillis() / 1000);
 		super.increasePosition(0, upwardsSpeed * (DisplayMaster.getFrameTimeMillis() / 1000), 0);
-		float terrainHeight = terrain.getHeightOfTerrain(super.getPosition().x, super.getPosition().z);
+		float terrainHeight = chunk.getHeightOfTerrain(super.getPosition().x, super.getPosition().z);
 		
 		if(super.getPosition().y < terrainHeight)
 		{
@@ -146,10 +147,10 @@ public class Player extends Entity{
 		{
 			if(super.getPosition().x > entity.getPosition().x - 3 && super.getPosition().x < entity.getPosition().x + 3 &&
 					super.getPosition().z > entity.getPosition().z - 3 && super.getPosition().z < entity.getPosition().z + 3 &&
-					super.getPosition().y < terrain.getHeightOfTerrain(super.getPosition().x, super.getPosition().z) + 2)
+					super.getPosition().y < chunk.getHeightOfTerrain(super.getPosition().x, super.getPosition().z) + 2)
 			{
 				
-						super.getPosition().y = terrain.getHeightOfTerrain(super.getPosition().x, super.getPosition().z) + 2;
+						super.getPosition().y = chunk.getHeightOfTerrain(super.getPosition().x, super.getPosition().z) + 2;
 					
 			}
 		}

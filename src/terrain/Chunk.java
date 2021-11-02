@@ -1,6 +1,7 @@
 package terrain;
 
 
+import engineTester.MainGameLoop;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -14,7 +15,7 @@ import java.util.Random;
 
 public class Chunk {
 
-    private static final float SIZE = 1024; //size of terrain
+    private static final float SIZE = ChunkGenerator.SIZE; //size of terrain
 
     private float x;
     private float z;
@@ -35,7 +36,7 @@ public class Chunk {
      * mainGameLoop
      */
 
-    public Chunk(int gridX, int gridZ, Loader loader, TerrainTexturePack texturePack, TerrainTexture blendMap, String heightMap, int seed) {
+    public Chunk(int gridX, int gridZ, Loader loader, TerrainTexturePack texturePack, TerrainTexture blendMap, int seed) {
         this.texturePack = texturePack;
         this.blendMap = blendMap;
         this.x = gridX * SIZE;
@@ -43,7 +44,7 @@ public class Chunk {
         this.gridX = gridX;
         this.gridZ = gridZ;
         this.generator = new HeightsGenerator(seed);
-        this.model = generateTerrain(loader, heightMap);
+        this.model = generateTerrain(loader);
     }
 
     /*
@@ -57,6 +58,14 @@ public class Chunk {
 
     public float getZ() {
         return z;
+    }
+
+    public int getGridX(){
+        return (int)gridX;
+    }
+
+    public int getGridZ(){
+        return (int)gridZ;
     }
 
 
@@ -113,9 +122,9 @@ public class Chunk {
      * unused method that creates a terrain based on a heightmap
      */
 
-    private RawModel generateTerrain(Loader loader, String heightMap) {
+    private RawModel generateTerrain(Loader loader) {
 
-        int VERTEX_COUNT = 256;
+        int VERTEX_COUNT = ChunkGenerator.SIZE / 4;
         System.out.println("Seed: " + HeightsGenerator.seed);
         heights = new float[VERTEX_COUNT][VERTEX_COUNT];
         int count = VERTEX_COUNT * VERTEX_COUNT;

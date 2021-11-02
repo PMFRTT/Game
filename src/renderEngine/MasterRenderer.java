@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import engineTester.MainGameLoop;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -20,7 +21,6 @@ import models.TexturedModel;
 import shaders.StaticShader;
 import shadows.ShadowMapMasterRenderer;
 import terrain.Chunk;
-import terrain.Terrain;
 import terrain.TerrainShader;
 
 public class MasterRenderer {
@@ -33,7 +33,7 @@ public class MasterRenderer {
 	private static final float BLUE = 0.66F;
 	private static final float ALPHA = 1F;
 	
-	private Matrix4f projectionMatrix;
+	private static Matrix4f projectionMatrix;
 	
 	
 	private EntityRenderer entityRenderer;
@@ -72,7 +72,7 @@ public class MasterRenderer {
 	
 	
 	
-	public Matrix4f getProjectionMatrix() {
+	public static Matrix4f getProjectionMatrix() {
 		return projectionMatrix;
 	}
 
@@ -80,9 +80,9 @@ public class MasterRenderer {
 		this.projectionMatrix = projectionMatrix;
 	}
 	
-	public void renderScene(List<Entity> entities, List<Chunk> terrains, List<Light> lights, Camera camera, Vector4f clipPlane)
+	public void renderScene(List<Entity> entities, List<Light> lights, Camera camera, Vector4f clipPlane)
 	{
-		for(Chunk terrain:terrains)
+		for(Chunk terrain: MainGameLoop.chunkGenerator.getChunks())
 		{
 			processTerrain(terrain);
 		}

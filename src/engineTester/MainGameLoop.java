@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -29,8 +28,7 @@ import renderEngine.Loader;
 import renderEngine.MasterRenderer;
 import skybox.SkyboxRenderer;
 import stats.Health;
-import terrain.Chunk;
-import terrain.Terrain;
+import terrain.ChunkGenerator;
 import textures.ModelTexture;
 import textures.TerrainTexture;
 import textures.TerrainTexturePack;
@@ -38,7 +36,6 @@ import water.WaterFrameBuffers;
 import water.WaterRenderer;
 import water.WaterShader;
 import water.WaterTile;
-import toolbox.Methods;
 
 public class MainGameLoop {
 
@@ -48,6 +45,8 @@ public class MainGameLoop {
     public static int gridX = 0;
     public static int gridZ = 0;
     public static int facing = 0;
+
+    public static ChunkGenerator chunkGenerator;
 
 
     public static void main(String[] args) {
@@ -95,13 +94,7 @@ public class MainGameLoop {
 
         TerrainTexture blendMap = new TerrainTexture(loader.loadTexture("texture_blendMap"));
 
-        int seed = 27000000;
-
-        Chunk terrain1 = new Chunk(1, 1, loader, texturePack, blendMap, "heightMap", seed);
-        Chunk terrain2 = new Chunk(0, 0, loader, texturePack, blendMap, "heightMap", seed);
-        Chunk terrain3 = new Chunk(1, 0, loader, texturePack, blendMap, "heightMap", seed);
-        Chunk terrain4 = new Chunk(0, 1, loader, texturePack, blendMap, "heightMap", seed);
-
+        chunkGenerator = new ChunkGenerator(blendMap, texturePack, loader);
 
         /*
          * rawmodels loaded from modeldata
@@ -142,6 +135,7 @@ public class MainGameLoop {
         Player playerEntity = new Player(astronaut, new Vector3f(0, 0, 0), 0, 0, 0, 1);                                                            //creates playerEntity used for navigating world
 
 
+
         /*
          * getting textures to (l.164)
          */
@@ -163,7 +157,7 @@ public class MainGameLoop {
 
         Health healthHelper = new Health();
         //Entity grassEntity = new Entity(grass2, new Vector3f(15, terrain1.getHeightOfTerrain(15, -15), -15), 0, 0, 0, 7f);
-        Entity rockEntity = new Entity(rock2, new Vector3f(100, terrain1.getHeightOfTerrain(100, 100), 100), 0, 0, 0, 4f);
+        //Entity rockEntity = new Entity(rock2, new Vector3f(100, terrain1.getHeightOfTerrain(100, 100), 100), 0, 0, 0, 4f);
 
         /*
          * set their properties
@@ -193,17 +187,7 @@ public class MainGameLoop {
         small_treeTexture.setReflectivity(0);
         small_treeTexture.setShineDamper(0);
 
-        /*
-         * list of terrains
-         */
-
-
-        List<Chunk> terrains = new ArrayList<Chunk>();
-
-        terrains.add(terrain1);
-        terrains.add(terrain2);
-        terrains.add(terrain3);
-        terrains.add(terrain4);
+        Random random = new Random();
 
         /*
          * list of lights
@@ -220,13 +204,11 @@ public class MainGameLoop {
         List<Entity> entities = new ArrayList<Entity>();
         List<Entity> fishes = new ArrayList<Entity>();
         List<Entity> rocks = new ArrayList<Entity>();
-        Random random = new Random();
 
-
-        for (int i = 0; i < 100; i++) {
+        /*for (int i = 0; i < 100; i++) {
             float x = random.nextFloat() * 600;
             float z = random.nextFloat() * -800;
-            float y = terrain2.getHeightOfTerrain(x, z);
+            float y = .getHeightOfTerrain(x, z);
 
             entities.add(new Entity(tree, new Vector3f(x, y, z), 0, 0, 0, 1));
 
@@ -266,7 +248,7 @@ public class MainGameLoop {
 
 
 
-
+*/
 
         /*
          * adding more entities to list
@@ -300,34 +282,18 @@ public class MainGameLoop {
 
         while (!Display.isCloseRequested()) {                                                                                                 //is run while the window is opened
 
+            chunkGenerator.generateChunks(playerEntity.getPosition());
 
             AudioMaster.setListenerData(playerEntity.getPosition().x, playerEntity.getPosition().y, playerEntity.getPosition().z);
 
-            gridX = playerEntity.getGridX(playerEntity.getPosition().x);
-            gridZ = playerEntity.getGridZ(playerEntity.getPosition().z);
-            System.out.println("gridX: " + gridX + " gridZ: " + gridZ);
-            if (gridX == 1 && gridZ == 1) {
-                playerEntity.move(camera, terrain1, rocks);                                                                            //move function for player
-                //System.out.println("player is moving on terrain1");
-            } else if (gridX == 0 && gridZ == 0) {
-                playerEntity.move(camera, terrain2, rocks);                                                                            //move function for player
-                //System.out.println("player is moving on terrain2");
+            playerEntity.move(camera, rocks);                                                                            //move function for player
 
-            } else if (gridX == 1 && gridZ == 0) {
-                playerEntity.move(camera, terrain3, rocks);                                                                            //move function for player
-                //System.out.println("player is moving on terrain3");
-
-            } else if (gridX == 0 && gridZ == 1) {
-                playerEntity.move(camera, terrain4, rocks);                                                                            //move function for player
-                //System.out.println("player is moving on terrain4");
-
-            }
 						
 																																					/*if(Keyboard.isKeyDown(Keyboard.KEY_K))
 																																					{
 																																						Methods.spawnEntity(0, terrain1.getHeightOfTerrain(0, 0), 0, 0, 0, 0, 1, entities, fish);
 																																					}*/
-            renderer.processEntity(rockEntity);
+            //renderer.processEntity(rockEntity);
             playerEntity.setModel(astronaut);
 
             camera.setPosition(new Vector3f(0, PLAYER_HEIGHT, 0));                                                                        //set camerapos
@@ -348,7 +314,7 @@ public class MainGameLoop {
             camera.invertPitch();
             camera.invertRoll();
             //renderer.renderShadowMap(entities, light1);
-            renderer.renderScene(entities, terrains, lights, camera, new Vector4f(0, 1, 0, -water.getHeight() - 1));
+            renderer.renderScene(entities, lights, camera, new Vector4f(0, 1, 0, -water.getHeight() - 1));
             skyboxRenderer.render(camera);
             camera.getPosition().y += distance;
             camera.invertPitch();
@@ -363,7 +329,7 @@ public class MainGameLoop {
              */
             //renderer.renderShadowMap(entities, light1);
             skyboxRenderer.render(camera);
-            renderer.renderScene(entities, terrains, lights, camera, new Vector4f(0, -1, 0, water.getHeight() + 0.07f));
+            renderer.renderScene(entities, lights, camera, new Vector4f(0, -1, 0, water.getHeight() + 0.07f));
             fbos.unbindCurrentFrameBuffer();
             //System.out.println("x: " + playerEntity.getPosition().x + " y: " + playerEntity.getPosition().z);
 
@@ -392,7 +358,7 @@ public class MainGameLoop {
             //System.out.println(playerEntity.getRotY());
             //System.out.println(playerEntity.getPosition().x + " : " + playerEntity.getPosition().z);
 
-            renderer.renderScene(entities, terrains, lights, camera, new Vector4f(0, 0, 0, 0));                                            //currently renders entities terrains camera and lights
+            renderer.renderScene(entities, lights, camera, new Vector4f(0, 0, 0, 0));                                            //currently renders entities terrains camera and lights
             waterRenderer.render(waters, camera, light1);                                                                                //renders water
             skyboxRenderer.render(camera);                                                                                                //renders skybox
             guiRenderer.render(guis);                                                                                                    //renders guis above everything
